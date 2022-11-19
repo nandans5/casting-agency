@@ -1,5 +1,4 @@
 # check movie and actor relationship
-# change release_date
 
 import os
 from sqlalchemy import Column, String, Integer, create_engine
@@ -29,13 +28,13 @@ class Movie(db.Model):
 
     id = Column(Integer, primary_key=True)
     title = Column(String)
-    release_date = Column(DateTime)
+    release_month = Column(String)
     # actors = relationship('Actor', backref="movie", lazy=True)
     actors = db.relationship('Actor', backref='movie') # check
 
-    def __init__(self, title, release_date):
+    def __init__(self, title, release_month):
         self.title = title
-        self.release_date = release_date
+        self.release_month = release_month
 
     def insert(self):
         db.session.add(self)
@@ -52,7 +51,7 @@ class Movie(db.Model):
         return {
             'id': self.id,
             'title': self.title,
-            'release_date': self.release_date,
+            'release_month': self.release_month,
             'actors': list(map(lambda actor: actor.format(), self.actors))
         }
 
