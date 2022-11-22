@@ -1,13 +1,13 @@
 # check movie and actor relationship
-
 import os
 from sqlalchemy import Column, String, Integer, create_engine
 from flask_sqlalchemy import SQLAlchemy
 import json
-from settings import DB_NAME, DB_USER, DB_PASSWORD
+# from settings import DB_NAME, DB_USER, DB_PASSWORD
+from flask_migrate import Migrate
 
-database_name = 'trivia'
-database_path = "postgresql://{}:{}@{}/{}".format(DB_USER, DB_PASSWORD, 'localhost:5433', DB_NAME)
+database_name = 'tests'
+database_path = "postgresql://{}:{}@{}/{}".format('postgres', '28251532', 'localhost:5433', database_name)
 
 db = SQLAlchemy()
 
@@ -20,7 +20,9 @@ def setup_db(app, database_path=database_path):
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
     db.app = app
     db.init_app(app)
-    migrate = Migrate(app, db)
+    db.create_all()
+
+    # migrate = Migrate(app, db)
 
 class Movie(db.Model):
 
@@ -30,7 +32,7 @@ class Movie(db.Model):
     title = Column(String)
     release_month = Column(String)
     # actors = relationship('Actor', backref="movie", lazy=True)
-    actors = db.relationship('Actor', backref='movie') # check
+    # actors = db.relationship('Actor', backref='movie') # check
 
     def __init__(self, title, release_month):
         self.title = title
@@ -52,7 +54,7 @@ class Movie(db.Model):
             'id': self.id,
             'title': self.title,
             'release_month': self.release_month,
-            'actors': list(map(lambda actor: actor.format(), self.actors))
+            # 'movies': list(map(lambda actor: movie.format(), self.movies))
         }
 
 '''
@@ -69,7 +71,7 @@ class Actor(db.Model):
     age = Column(Integer)
     gender = Column(String)
     # movie_id = Column(Integer, ForeignKey('movies.id'), nullable=True)
-    movie_id = db.Column(db.Integer, db.ForeignKey('Movie.id'))
+    # movie_id = db.Column(db.Integer, db.ForeignKey('Movie.id'))
 
     def __init__(self, name, age, gender, movie_id):
         self.name = name
@@ -94,5 +96,5 @@ class Actor(db.Model):
             'name': self.name,
             'age': self.age,
             'gender': self.gender,
-            "movie_id": self.movie_id
+            # "movie_id": self.movie_id
         }

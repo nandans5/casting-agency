@@ -2,19 +2,14 @@
 # add actor and movie ids in patch endpoints (foreign tables)
 import os
 from flask import Flask, request, jsonify, abort
-from sqlalchemy import exc
+from flask_sqlalchemy import SQLAlchemy
 import json
 from flask_cors import CORS
 
-from models import setup_db, Actor, Movie
-from auth import AuthError, requires_auth
+from .models import *
+from .auth import AuthError, requires_auth
 
-app = Flask(__name__)
-setup_db(app)
-CORS(app)
-
-
-db_drop_and_create_all()
+# db_drop_and_create_all()
 
 def create_app(test_config=None):
     # create and configure the app
@@ -48,7 +43,8 @@ def create_app(test_config=None):
     '''
     # GET movies
     @app.route('/movies', methods=['GET'])
-    def get_movies():
+    @requires_auth('get:movies')
+    def get_movies(payload):
         movies = Movie.query.order_by(Movie.id).all()
         format_movies = [i.format() for i in movies]
 
@@ -58,7 +54,8 @@ def create_app(test_config=None):
 
     # GET actors
     @app.route('/actors', methods=['GET'])
-    def get_actors():
+    @requires_auth('get:actors')
+    def get_actors(payload):
         actors = Actor.query.order_by(Actor.id).all()
         format_actors = [i.format() for i in actors]
 
@@ -68,7 +65,8 @@ def create_app(test_config=None):
 
     # DELETE movie
     @app.route('/movies/<int:id>', methods=['DELETE'])
-    def delete_movie(id):
+    @requires_auth('delete:movies')
+    def delete_movie(payload, id):
         try:
             selection = Movie.query.filter(Movie.id == id).one_or_none()
 
@@ -86,7 +84,8 @@ def create_app(test_config=None):
 
     # DELETE actor
     @app.route('/actors/<int:id>', methods=['DELETE'])
-    def delete_actor(id):
+    @requires_auth('delete:actors')
+    def delete_actor(payload, id):
         try:
             selection = Actor.query.filter(Actor.id == id).one_or_none()
 
@@ -104,7 +103,8 @@ def create_app(test_config=None):
 
     # POST movie
     @app.route('/movies', methods=['POST'])
-    def create_movie():
+    @requires_auth('post:movies')
+    def create_movie(payload):
         body = request.get_json()
         new_title = body.get('title', None)
         new_release_month = body.get('release_month', None)
@@ -122,14 +122,16 @@ def create_app(test_config=None):
     
     # POST actor
     @app.route('/actors', methods=['POST'])
-    def create_actor():
+    @requires_auth('post:actors')
+    def create_actor(payload):
         body = request.get_json()
         new_name = body.get('name', None)
         new_age = body.get('age', None)
         new_gender = body.get('gender', None)
+        new_movie_id = body.get('movie_id', None)
 
         try:
-            actor = Actor(name=new_name, age=new_age, gender=new_gender)
+            actor = Actor(name=new_name, age=new_age, gender=new_gender, movie_id=new_movie_id)
             actor.insert()
                  
             return jsonify({
@@ -140,11 +142,11 @@ def create_app(test_config=None):
             abort(422)   
     
     @app.route('/movies/<int:id>', methods=['PATCH'])
-    @requires_auth('update:movies')
-    def update_movie(payload, movie_id):
+    @requires_auth('patch:movies')
+    def update_movie(payload, id):
 
         # check
-        movie = Movie.query.filter(Actor.id == id).one_or_none() 
+        movie = Movie.query.filter(Movie.id == id).one_or_none() 
 
         if not movie:
             abort(404)
@@ -156,8 +158,8 @@ def create_app(test_config=None):
 
         if title:
             movie.title = title
-        if release_date:
-            movie.release_date = release_date
+        if release_month:
+            movie.release_month = release_month
 
         movie.update()
 
@@ -167,7 +169,7 @@ def create_app(test_config=None):
         })
 
     @app.route('/actors/<int:id>', methods=['PATCH'])
-    @requires_auth('update:actors')
+    @requires_auth('patch:actors')
     def update_actor(payload, id):
 
         # check
@@ -241,3 +243,5 @@ def create_app(test_config=None):
             "error": ex.status_code,
             "message": ex.error['code']
         }),  ex.status_code
+
+    return app
