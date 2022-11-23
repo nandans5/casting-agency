@@ -6,8 +6,9 @@ import json
 # from settings import DB_NAME, DB_USER, DB_PASSWORD
 from flask_migrate import Migrate
 
-database_name = 'tests'
-database_path = "postgresql://{}:{}@{}/{}".format('postgres', '28251532', 'localhost:5433', database_name)
+database_path = os.environ['DATABASE_URL']
+if database_path.startswith("postgres://"):
+  database_path = database_path.replace("postgres://", "postgresql://", 1)
 
 db = SQLAlchemy()
 
@@ -54,7 +55,6 @@ class Movie(db.Model):
             'id': self.id,
             'title': self.title,
             'release_month': self.release_month,
-            # 'movies': list(map(lambda actor: movie.format(), self.movies))
         }
 
 '''
@@ -70,8 +70,6 @@ class Actor(db.Model):
     name = Column(String)
     age = Column(Integer)
     gender = Column(String)
-    # movie_id = Column(Integer, ForeignKey('movies.id'), nullable=True)
-    # movie_id = db.Column(db.Integer, db.ForeignKey('Movie.id'))
 
     def __init__(self, name, age, gender, movie_id):
         self.name = name
@@ -96,5 +94,4 @@ class Actor(db.Model):
             'name': self.name,
             'age': self.age,
             'gender': self.gender,
-            # "movie_id": self.movie_id
         }

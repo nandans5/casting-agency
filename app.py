@@ -6,8 +6,8 @@ from flask_sqlalchemy import SQLAlchemy
 import json
 from flask_cors import CORS
 
-from .models import *
-from .auth import AuthError, requires_auth
+from models import *
+from auth import AuthError, requires_auth
 
 # db_drop_and_create_all()
 
@@ -141,11 +141,11 @@ def create_app(test_config=None):
         except:
             abort(422)   
     
+    # patch movies
     @app.route('/movies/<int:id>', methods=['PATCH'])
     @requires_auth('patch:movies')
     def update_movie(payload, id):
 
-        # check
         movie = Movie.query.filter(Movie.id == id).one_or_none() 
 
         if not movie:
@@ -168,11 +168,11 @@ def create_app(test_config=None):
             "movie updated": movie.format()
         })
 
+    # patch actors
     @app.route('/actors/<int:id>', methods=['PATCH'])
     @requires_auth('patch:actors')
     def update_actor(payload, id):
 
-        # check
         actor = Actor.query.filter(Actor.id == id).one_or_none()
 
         if not actor:
@@ -183,7 +183,6 @@ def create_app(test_config=None):
         name = body.get('name', None)
         age = body.get('age', None)
         gender = body.get('gender', None)
-        # movie_id = body.get('movie_id', None)
 
         if name:
             actor.name = name
@@ -191,8 +190,6 @@ def create_app(test_config=None):
             actor.age = age
         if gender:
             actor.gender = gender
-        # if movie_id:
-        #     actor.movie_id = movie_id
 
         actor.update()
 
@@ -245,3 +242,5 @@ def create_app(test_config=None):
         }),  ex.status_code
 
     return app
+
+app=create_app()
