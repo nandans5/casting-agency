@@ -1,9 +1,5 @@
 # Full Stack Capstone Project
 
-## Getting Started 
-
-Heroku hosted app url: https://capstone-12345.herokuapp.com/ 
-
 ## Project Motivations
 
 The Casting Agency is an application to manage a database movies and actors. This is done using a flask application and a postgres database.  
